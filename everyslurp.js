@@ -45,14 +45,14 @@ var jqUI = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.
         } catch(e) {}
     }
 
-    function postPage(contents) {
+    function postPage(contents, domain) {
         
         queue(function(iframe, next) {
 
             log('Posting contents...');
 
             var target = iframe.attr('id'),
-                form = $('<form action="https://www.cloudflare.com/api/everydns.html" target="' + target + '" method="POST"><input type="hidden" name="html" /><input type="hidden" name="user" value="' + username + '" /></form>').insertAfter(iframe);
+                form = $('<form action="https://www.cloudflare.com/ajax/everydns.html" target="' + target + '" method="POST"><input type="hidden" name="html" /><input type="hidden" name="user" value="' + username + '" /><input type="hidden" name="domain" value="' + domain + '" /><input type="hidden" name="act" value="receive" /></form>').insertAfter(iframe);
 
             form.children('input').first().val(contents);
 
@@ -69,11 +69,15 @@ var jqUI = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.
         });
     }
 
-    function loadPage(url, callback, noPost) {
+    function loadPage(anchor, callback) {
 
         queue(function(iframe, next) {
 
-            log('Loading ' + url);
+            var noPost = typeof anchor === 'string',
+                url = noPost ? anchor : anchor.attr('href'),
+                domain = noPost ? '' : anchor.text();
+
+            log('Loading data for ' + (domain || url));
 
             iframe.one(
                 'load',
@@ -81,7 +85,7 @@ var jqUI = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.
 
                     var iframeContent = iframe.get(0).contentWindow.document.documentElement.innerHTML;
 
-                    if(!noPost) postPage(iframeContent);
+                    if(!noPost) postPage(iframeContent, domain);
 
                     callback(iframeContent);
                     next();
@@ -110,14 +114,14 @@ var jqUI = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.
                 primaryLinks.each(
                     function(index, el) {
 
-                        links.push($(el).attr('href'));
+                        links.push($(el));
                     }
                 );
 
                 dynamicLinks.each(
                     function(index, el) {
 
-                        links.push($(el).attr('href'));
+                        links.push($(el));
                     }
                 );
                 
@@ -129,9 +133,7 @@ var jqUI = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.
                             link,
                             function() {
 
-                                complete++;
-
-                                if(complete === links.length) {
+                                if(++complete === links.length) {
 
                                     dialog("DNS Export Complete", "Thanks for using the CloudFlare EveryDNS Transition Tool. Click 'Okay' to return to CloudFlare.", function() {
                                           
