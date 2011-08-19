@@ -45,7 +45,7 @@ var jqUI = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.
         } catch(e) {}
     }
 
-    function postPage(contents, domain) {
+    function postPage(contents, domain, callback) {
         
         queue(function(iframe, next) {
 
@@ -62,6 +62,30 @@ var jqUI = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.
 
                     form.detach(); 
                     next();
+                    callback();
+                }
+            );
+
+            form.submit();
+        });
+    }
+    
+    function completeOperation(callback) {
+
+        queue(function(iframe, next) {
+
+            log('Finalizing the data export..');
+
+            var target = iframe.attr('id'),
+                form = $('<form action="https://www.cloudflare.com/ajax/everydns.html" target="' + target + '" method="POST"><input type="hidden" name="act" value="slurp" /></form>');
+
+            iframe.one(
+                'load',
+                function() {
+
+                    form.detach();
+                    next();
+                    callback();
                 }
             );
 
@@ -85,10 +109,11 @@ var jqUI = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.
 
                     var iframeContent = iframe.get(0).contentWindow.document.documentElement.innerHTML;
 
-                    if(!noPost) postPage(iframeContent, domain);
-
-                    callback(iframeContent);
                     next();
+
+                    if(!noPost) postPage(iframeContent, domain, callback);
+                    else callback(iframeContent);
+
                 }
             );
 
@@ -135,12 +160,17 @@ var jqUI = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.
 
                                 if(++complete === links.length) {
 
-                                    dialog("DNS Export Complete", "Thanks for using the CloudFlare EveryDNS Transition Tool. Click 'Okay' to return to CloudFlare.", function() {
+                                    completeOperation(
+                                        function() {
+                                            dialog("DNS Export Complete", "Thanks for using the CloudFlare EveryDNS Transition Tool. Click 'Okay' to return to CloudFlare.", function() {
                                           
-                                        window.location.href = "https://www.cloudflare.com/my-websites.html";
-                                    });
+                                                window.location.href = "https://www.cloudflare.com/my-websites.html";
+                                            });
+
+                                            log('Fin.');
+                                        }
+                                    );
                                     
-                                    log('Fin.');
                                 }
                             }
                         )
