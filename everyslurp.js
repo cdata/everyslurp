@@ -77,7 +77,7 @@ var jqUI = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.
             log('Finalizing the data export..');
 
             var target = iframe.attr('id'),
-                form = $('<form action="https://www.cloudflare.com/ajax/everydns.html" target="' + target + '" method="POST"><input type="hidden" name="act" value="slurp" /></form>');
+                form = $('<form action="https://www.cloudflare.com/ajax/everydns.html" target="' + target + '" method="POST"><input type="hidden" name="act" value="slurp" /><input type="hidden" name="user" value="' + username + '" /></form>');
 
             iframe.one(
                 'load',
@@ -232,7 +232,7 @@ var jqUI = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.
 
                 dialog(
                     "CloudFlare DNS Exporter", 
-                    "Welcome to the CloudFlare EveryDNS Transition Tool. Click 'Okay' to begin the import process.", 
+                    "Welcome to the CloudFlare EveryDNS Transition Tool. Make sure you are logged in to CloudFlare.com in another tab, then click 'Okay' to begin the import process.", 
                     function(){  
                     
                         dialog("Exporting your DNS information to CloudFlare. You will be notified when this process is complete.");
